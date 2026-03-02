@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudPop 控制台</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #0f0f1a;
+      --card:   #1a1a2e;
+      --border: #2a2a42;
+      --accent: #7c3aed;
+      --blue:   #3b82f6;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --yellow: #f59e0b;
+      --text:   #e0e0e0;
+      --muted:  #888;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    /* ── Header ── */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .auth-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .dot.online  { background: var(--green); }
+    .dot.offline { background: var(--red); }
+    .btn-login {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: rgba(124,58,237,0.15); }
+
+    /* ── Main ── */
+    main { padding: 32px; max-width: 960px; margin: 0 auto; }
+    h2 { font-size: 1rem; color: var(--muted); font-weight: 500; margin-bottom: 20px; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ── Grid ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 32px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .card-title { font-weight: 600; margin-bottom: 8px; }
+    .card-desc  { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; }
+    .btn-danger  { background: var(--red); color: #fff; }
+    .btn-ghost   { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn:hover:not(:disabled) { opacity: 0.85; }
+
+    /* ── Log panel ── */
+    .log-panel {
+      background: #0a0a14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 0.8rem;
+      color: #ccc;
+      min-height: 120px;
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-top: 20px;
+    }
+    .log-line { padding: 2px 0; line-height: 1.6; }
+    .log-line.info    { color: #aaa; }
+    .log-line.success { color: var(--green); }
+    .log-line.error   { color: var(--red); }
+    .log-line.warn    { color: var(--yellow); }
+    .log-ts { color: #555; margin-right: 6px; }
+
+    /* ── Stats ── */
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .stat:last-child { border-bottom: none; }
+    .stat-label { color: var(--muted); }
+    .stat-value { font-weight: 600; }
+
+    /* ── Spinner ── */
+    .spin {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .btn.loading .spin { display: block; }
+    .btn.loading .btn-label { opacity: 0.6; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Folder Picker ── */
+    .folder-bar {
+      display: flex; align-items: center; gap: 12px;
+      background: #0a0a14; border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 16px;
+      margin-bottom: 20px;
+    }
+    .folder-path { flex: 1; font-family: monospace; font-size: 0.85rem; color: #aaa; }
+    .folder-path.root { color: var(--muted); font-style: italic; }
+    .modal-bg {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; width: 480px; max-height: 70vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .modal-title { font-weight: 600; flex: 1; }
+    .breadcrumb { padding: 10px 20px; font-size: 0.82rem; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .folder-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .folder-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 6px; cursor: pointer;
+      font-size: 0.88rem; transition: background 0.15s;
+    }
+    .folder-item:hover { background: rgba(255,255,255,0.05); }
+    .folder-item .icon { font-size: 1.1rem; }
+    .modal-footer {
+      padding: 12px 20px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; justify-content: flex-end;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">☁ CloudPop</div>
+  <div class="auth-badge">
+    <div class="dot" id="authDot"></div>
+    <span id="authLabel">检查中…</span>
+    <button class="btn-login" id="authBtn" onclick="window.location.href='/login'" style="display:none">重新登录</button>
+  </div>
+</header>
+
+<main>
+  <h2>扫描目标文件夹</h2>
+  <div class="folder-bar">
+    <span style="color:var(--muted);font-size:0.85rem">目标目录：</span>
+    <span class="folder-path" id="scanFolderPath">加载中…</span>
+    <button class="btn btn-ghost" onclick="openFolderPicker()" style="padding:6px 14px;font-size:0.82rem">
+      更换目录
+    </button>
+    <button class="btn btn-ghost" onclick="resetScanFolder()" id="resetBtn"
+            style="padding:6px 14px;font-size:0.82rem;display:none">
+      重置为根目录
+    </button>
+  </div>
+
+  <!-- 文件夹选择弹窗 -->
+  <div class="modal-bg" id="folderModal">
+    <div class="modal">
+      <div class="modal-header">
+        <button class="btn btn-ghost" id="upBtn" onclick="goUp()" style="padding:4px 10px;font-size:0.82rem" disabled>↑ 上级</button>
+        <span class="modal-title">选择扫描目标文件夹</span>
+        <button class="btn btn-ghost" onclick="closeFolderPicker()" style="padding:4px 10px;font-size:0.82rem">✕</button>
+      </div>
+      <div class="breadcrumb" id="modalBreadcrumb">/</div>
+      <div class="folder-list" id="folderList">
+        <div style="color:var(--muted);text-align:center;padding:24px">加载中…</div>
+      </div>
+      <div class="modal-footer">
+        <span id="selectedLabel" style="flex:1;font-size:0.82rem;color:var(--muted)">点击文件夹选择，双击进入子目录</span>
+        <button class="btn btn-ghost" onclick="closeFolderPicker()">取消</button>
+        <button class="btn btn-primary" id="confirmFolderBtn" onclick="confirmFolder()" disabled>确认选择</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>文件同步</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">全量扫描</div>
+      <div class="card-desc">扫描 115 网盘中的所有视频文件，构建本地文件索引（不会写入磁盘）。</div>
+      <button class="btn btn-primary" id="scanBtn" onclick="runAction('scan')">
+        <div class="spin"></div>
+        <span class="btn-label">开始扫描</span>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">生成 STRM 文件</div>
+      <div class="card-desc">扫描后生成 .strm 文件到 Plex 媒体目录，支持增量同步，已存在的文件自动跳过。</div>
+      <button class="btn btn-primary" id="generateBtn" onclick="runAction('generate')">
+        <div class="spin"></div>
+        <span class="btn-label">生成 STRM</span>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">一键同步</div>
+      <div class="card-desc">依次执行扫描 + 生成两个步骤，适合首次使用或定期全量更新。</div>
+      <button class="btn btn-primary" id="syncBtn" onclick="runSync()">
+        <div class="spin"></div>
+        <span class="btn-label">扫描 + 生成</span>
+      </button>
+    </div>
+  </div>
+
+  <h2>缓存管理</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">清除所有缓存</div>
+      <div class="card-desc">清除所有已缓存的下载链接，下次播放视频时将重新获取。</div>
+      <button class="btn btn-danger" id="clearCacheBtn" onclick="clearCache()">
+        <div class="spin"></div>
+        <span class="btn-label">清除缓存</span>
+      </button>
+    </div>
+    <div class="card">
+      <div class="card-title">服务状态</div>
+      <div id="healthStats">
+        <div class="stat"><span class="stat-label">服务状态</span><span class="stat-value" id="svcStatus">—</span></div>
+        <div class="stat"><span class="stat-label">版本</span><span class="stat-value" id="svcVersion">—</span></div>
+        <div class="stat"><span class="stat-label">115 认证</span><span class="stat-value" id="svc115">—</span></div>
+        <div class="stat"><span class="stat-label">扫描目录</span><span class="stat-value" id="svcScanFolder" style="font-size:0.78rem;font-family:monospace">—</span></div>
+        <div class="stat"><span class="stat-label">输出目录</span><span class="stat-value" id="svcOutputDir" style="font-size:0.78rem;font-family:monospace">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="logPanel" class="log-panel"><span style="color:#555">运行日志将显示在这里…</span></div>
+</main>
+
+<script>
+const logPanel = document.getElementById('logPanel');
+let logCleared = false;
+
+function log(msg, cls = 'info') {
+  if (!logCleared) { logPanel.innerHTML = ''; logCleared = true; }
+  const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+  const line = document.createElement('div');
+  line.className = `log-line ${cls}`;
+  line.innerHTML = `<span class="log-ts">[${ts}]</span>${escHtml(msg)}`;
+  logPanel.appendChild(line);
+  logPanel.scrollTop = logPanel.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function setLoading(btn, loading) {
+  btn.classList.toggle('loading', loading);
+  btn.disabled = loading;
+}
+
+// ── Folder Picker ──────────────────────────────────────────────────────────
+let folderStack = [];        // 浏览历史 [{id, path}, ...]
+let selectedFolder = null;   // 当前选中的文件夹 {id, name, path}
+
+async function loadScanFolder() {
+  try {
+    const res = await fetch('/api/config/scan-folder');
+    const { folder_id, folder_path } = await res.json();
+    const el = document.getElementById('scanFolderPath');
+    const resetBtn = document.getElementById('resetBtn');
+    if (folder_id === '0' || folder_id === '') {
+      el.textContent = '/ (根目录，扫描全部)';
+      el.className = 'folder-path root';
+      resetBtn.style.display = 'none';
+    } else {
+      el.textContent = folder_path;
+      el.className = 'folder-path';
+      resetBtn.style.display = 'inline-flex';
+    }
+  } catch(e) {
+    document.getElementById('scanFolderPath').textContent = '读取失败';
+  }
+}
+
+async function resetScanFolder() {
+  if (!confirm('确认重置为扫描根目录（全量扫描）？')) return;
+  await fetch('/api/config/scan-folder', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ folder_id: '0', folder_path: '/' }),
+  });
+  await loadScanFolder();
+  log('已重置扫描目录为根目录', 'info');
+}
+
+function openFolderPicker() {
+  folderStack = [];
+  selectedFolder = null;
+  document.getElementById('confirmFolderBtn').disabled = true;
+  document.getElementById('selectedLabel').textContent = '点击文件夹选择，双击进入子目录';
+  document.getElementById('folderModal').classList.add('open');
+  browseFolders('0', '/');
+}
+
+function closeFolderPicker() {
+  document.getElementById('folderModal').classList.remove('open');
+}
+
+async function browseFolders(folderId, folderPath) {
+  const listEl = document.getElementById('folderList');
+  const breadEl = document.getElementById('modalBreadcrumb');
+  const upBtn = document.getElementById('upBtn');
+  listEl.innerHTML = '<div style="color:var(--muted);text-align:center;padding:24px">加载中…</div>';
+  breadEl.textContent = folderPath || '/';
+  upBtn.disabled = folderStack.length === 0;
+  try {
+    const res = await fetch(`/api/folders?folder_id=${folderId}`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const hint = res.status === 400
+        ? '115 尚未登录，请先扫码登录'
+        : res.status === 401
+        ? '115 Cookie 已过期，请重新登录'
+        : (body.detail || `HTTP ${res.status}`);
+      throw new Error(hint);
+    }
+    const { items, folder_path } = await res.json();
+    breadEl.textContent = folder_path;
+    if (items.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--muted);text-align:center;padding:24px">该目录下没有子文件夹</div>';
+      return;
+    }
+    listEl.innerHTML = '';
+    for (const item of items) {
+      const div = document.createElement('div');
+      div.className = 'folder-item';
+      div.dataset.id = item.id;
+      div.dataset.name = item.name;
+      div.innerHTML = `<span class="icon">📁</span><span>${escHtml(item.name)}</span>`;
+      div.addEventListener('click', () => {
+        document.querySelectorAll('.folder-item').forEach(el => el.style.background = '');
+        div.style.background = 'rgba(124,58,237,0.2)';
+        selectedFolder = { id: item.id, name: item.name, path: `${folder_path.replace(/\/$/, '')}/${item.name}` };
+        document.getElementById('confirmFolderBtn').disabled = false;
+        document.getElementById('selectedLabel').textContent = `已选：${selectedFolder.path}`;
+      });
+      div.addEventListener('dblclick', () => {
+        folderStack.push({ id: folderId, path: folder_path });
+        const newPath = `${folder_path.replace(/\/$/, '')}/${item.name}`;
+        selectedFolder = null;
+        document.getElementById('confirmFolderBtn').disabled = true;
+        browseFolders(item.id, newPath);
+      });
+      listEl.appendChild(div);
+    }
+  } catch(e) {
+    listEl.innerHTML = `<div style="color:var(--red);text-align:center;padding:24px">加载失败：${escHtml(e.message)}</div>`;
+  }
+}
+
+function goUp() {
+  if (folderStack.length === 0) return;
+  const prev = folderStack.pop();
+  selectedFolder = null;
+  document.getElementById('confirmFolderBtn').disabled = true;
+  browseFolders(prev.id, prev.path);
+}
+
+async function confirmFolder() {
+  if (!selectedFolder) return;
+  try {
+    const res = await fetch('/api/config/scan-folder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder_id: selectedFolder.id, folder_path: selectedFolder.path }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    log(`扫描目录已设置为：${selectedFolder.path}`, 'success');
+    closeFolderPicker();
+    await loadScanFolder();
+  } catch(e) {
+    log(`保存失败：${e.message}`, 'error');
+  }
+}
+
+// ── Auth status ────────────────────────────────────────────────────────────
+async function checkAuth() {
+  try {
+    const res = await fetch('/api/auth/status');
+    const { configured, uid } = await res.json();
+    const dot   = document.getElementById('authDot');
+    const label = document.getElementById('authLabel');
+    const btn   = document.getElementById('authBtn');
+    if (configured) {
+      dot.className = 'dot online';
+      label.textContent = `已登录 UID: ${uid}`;
+      btn.style.display = 'inline-block';
+    } else {
+      dot.className = 'dot offline';
+      label.textContent = '未登录';
+      btn.style.display = 'inline-block';
+      btn.textContent = '扫码登录';
+    }
+  } catch(e) {
+    document.getElementById('authLabel').textContent = '状态未知';
+  }
+}
+
+// ── Health ────────────────────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const res = await fetch('/health');
+    const data = await res.json();
+    document.getElementById('svcStatus').textContent  = data.status  || '—';
+    document.getElementById('svcVersion').textContent = data.version || '—';
+    const conf = data.providers?.['115']?.configured;
+    document.getElementById('svc115').textContent = conf ? '✅ 已配置' : '❌ 未配置';    // 加载扫描目录和输出路径
+    const cfgRes = await fetch('/api/config');
+    if (cfgRes.ok) {
+      const cfg = await cfgRes.json();
+      const sf = document.getElementById('svcScanFolder');
+      sf.textContent = cfg.scan_folder_path || '/ (根目录)';
+      document.getElementById('svcOutputDir').textContent = cfg.output_dir || '—';
+    }  } catch(e) {
+    document.getElementById('svcStatus').textContent = '连接失败';
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────
+async function runAction(action) {
+  const btn = document.getElementById(action === 'scan' ? 'scanBtn' : 'generateBtn');
+  setLoading(btn, true);
+  const label = action === 'scan' ? '扫描' : '生成 STRM';
+  log(`开始${label}…`);
+  try {
+    const res = await fetch(`/api/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    if (action === 'scan') {
+      const n = data.total_videos ?? 0;
+      if (n === 0) {
+        log(`扫描完成，未找到视频文件（目录可能为空或文件类型不匹配）`, 'warn');
+      } else {
+        log(`扫描完成 ✔  共找到 ${n} 个视频文件`, 'success');
+      }
+    } else {
+      const { created = 0, skipped = 0, errors = 0, output_dir = '', duration_seconds = 0 } = data;
+      if (created === 0 && skipped === 0) {
+        log(`生成完成，未找到可生成的视频，请先点「全量扫描」`, 'warn');
+      } else {
+        log(`生成完成 ✔  新增 ${created} 个、跳过 ${skipped} 个、错误 ${errors} 个  耗时 ${duration_seconds}s`, 'success');
+        if (output_dir) log(`输出目录：${output_dir}`, 'info');
+      }
+    }
+  } catch(e) {
+    log(`${label}失败：${e.message}`, 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+async function runSync() {
+  const btn = document.getElementById('syncBtn');
+  setLoading(btn, true);
+  log('开始一键同步（扫描 + 生成）…');
+  try {
+    // 先扫描
+    let res = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    let data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `扫描失败 HTTP ${res.status}`);
+    const n = data.total_videos ?? 0;
+    if (n === 0) {
+      log(`扫描完成，未找到视频文件，已停止`, 'warn');
+      return;
+    }
+    log(`扫描完成 ✔  共 ${n} 个视频，开始生成 STRM…`, 'success');
+    // 再生成
+    res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `生成失败 HTTP ${res.status}`);
+    const { created = 0, skipped = 0, errors = 0, output_dir = '', duration_seconds = 0 } = data;
+    log(`生成完成 ✔  新增 ${created} 个、跳过 ${skipped} 个、错误 ${errors} 个  耗时 ${duration_seconds}s`, 'success');
+    if (output_dir) log(`输出目录：${output_dir}`, 'info');
+  } catch(e) {
+    log(`同步失败：${e.message}`, 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+async function clearCache() {
+  const btn = document.getElementById('clearCacheBtn');
+  setLoading(btn, true);
+  log('清除所有缓存…');
+  try {
+    const res = await fetch('/api/cache', { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    log(`缓存已清除：移除 ${data.deleted_count ?? '?'} 条`, 'success');
+  } catch(e) {
+    log(`清除失败：${e.message}`, 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+checkAuth();
+checkHealth();
+loadScanFolder();
+</script>
+</body>
+</html>

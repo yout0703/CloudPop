@@ -1,0 +1,41 @@
+# CloudPop 配置文件示例
+# 复制为 ~/.cloudpop/config.yaml 并填写你的信息
+
+server:
+  host: "127.0.0.1"
+  port: 19798
+  # 设置为 true 则监听 0.0.0.0（允许局域网访问）
+  public: false
+
+providers:
+  "115":
+    # 从浏览器 Cookie 中提取（登录 115.com → DevTools → Application → Cookies）
+    cookies:
+      UID: ""
+      CID: ""
+      SEID: ""
+    # User-Agent 伪装（建议保持与浏览器一致）
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+strm:
+  # Plex 媒体库根目录（CloudPop 会在此目录下生成 .strm 文件）
+  output_dir: "~/plex-media"
+  # STRM 文件内写入的代理 URL 前缀（Plex 和 CloudPop 同机时用 localhost）
+  base_url: "http://localhost:19798"
+  # 文件大小过滤：跳过小于此值（MB）的文件，0 表示不过滤
+  min_file_size_mb: 100
+  # 是否同步字幕文件（.srt/.ass/.ssa/.sub/.vtt）
+  copy_subtitles: false
+  # 扫描目标文件夹（通过 Web UI 的文件夹选择器自动写入，也可手动填写）
+  # scan_folder_id: "0"     # "0" 表示根目录（默认）
+  # scan_folder_path: "/"   # 对应的路径（仅用于显示）
+
+cache:
+  # 下载 URL 缓存时间（秒），115 下载链接通常有效 3600s
+  download_url_ttl: 3600
+  # 文件信息缓存时间（秒）
+  file_info_ttl: 86400
+
+log:
+  level: "INFO"   # DEBUG / INFO / WARNING / ERROR
+  file: "~/.cloudpop/cloudpop.log"

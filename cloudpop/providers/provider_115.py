@@ -27,7 +27,7 @@ _BASE_WEB = "https://webapi.115.com"
 _BASE_PRO = "https://proapi.115.com"
 _BASE_PASSPORT = "https://passportapi.115.com"
 
-_BASE_FILES = "http://web.api.115.com"  # webapi.115.com /files 于 2026-03 起对 GET 返回 405
+_BASE_FILES = "https://webapi.115.com"  # fix 405 error
 
 _URL_CHECK_SSO = f"{_BASE_PASSPORT}/app/1.0/web/1.0/check/sso"
 _URL_FILES = f"{_BASE_FILES}/files"

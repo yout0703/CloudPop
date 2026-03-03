@@ -4,96 +4,126 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CloudPop — 115 账号登录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f0f1a;
-      color: #e0e0e0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e1e38, #090910);
+      color: #f3f4f6;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .card {
-      background: #1a1a2e;
-      border: 1px solid #2a2a42;
-      border-radius: 16px;
-      padding: 40px 48px;
-      width: 400px;
+      background: rgba(26, 26, 46, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 48px;
+      width: 420px;
       text-align: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .logo {
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 700;
-      background: linear-gradient(135deg, #7c3aed, #3b82f6);
+      background: linear-gradient(135deg, #a855f7, #3b82f6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 8px;
+      letter-spacing: -0.02em;
     }
-    .subtitle { color: #888; margin-bottom: 32px; font-size: 0.9rem; }
+    .subtitle { color: #9ca3af; margin-bottom: 32px; font-size: 0.95rem; font-weight: 500;}
     .qr-container {
-      width: 200px;
-      height: 200px;
+      width: 220px;
+      height: 220px;
       margin: 0 auto 24px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 16px;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+    .qr-container:hover {
+      transform: scale(1.02);
     }
     .qr-container img {
-      width: 200px;
-      height: 200px;
+      width: 100%;
+      height: 100%;
       border-radius: 8px;
-      border: 3px solid #2a2a42;
+      object-fit: cover;
     }
     .qr-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(15,15,26,0.9);
-      border-radius: 8px;
+      background: rgba(15,15,26,0.85);
+      backdrop-filter: blur(4px);
+      border-radius: 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      font-size: 0.85rem;
+      gap: 16px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: opacity 0.3s;
+      color: #fff;
     }
-    .qr-overlay.hidden { display: none; }
+    .qr-overlay.hidden { opacity: 0; pointer-events: none; }
     .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid #2a2a42;
-      border-top-color: #7c3aed;
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #a855f7;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .status-text {
-      font-size: 0.9rem;
-      color: #aaa;
-      margin-bottom: 16px;
+      font-size: 0.95rem;
+      color: #d1d5db;
+      margin-bottom: 24px;
       min-height: 1.2em;
+      font-weight: 500;
+      transition: color 0.3s;
     }
-    .status-text.success { color: #22c55e; }
-    .status-text.error   { color: #ef4444; }
-    .status-text.scanned { color: #3b82f6; }
+    .status-text.success { color: #34d399; }
+    .status-text.error   { color: #f87171; }
+    .status-text.scanned { color: #60a5fa; }
     .btn {
-      display: inline-block;
-      padding: 10px 28px;
-      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 10px;
       border: none;
       cursor: pointer;
       font-size: 0.9rem;
       font-weight: 600;
-      transition: opacity 0.2s;
+      transition: all 0.2s ease;
+      text-decoration: none;
     }
-    .btn:hover { opacity: 0.85; }
-    .btn-primary { background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #fff; }
-    .btn-ghost   { background: transparent; color: #888; border: 1px solid #2a2a42; }
-    .instructions { color: #888; font-size: 0.82rem; margin-top: 20px; line-height: 1.6; }
-    .instructions strong { color: #bbb; }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: linear-gradient(135deg, #a855f7, #3b82f6); color: #fff; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
+    .btn-primary:hover { box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4); transform: translateY(-1px); }
+    .btn-ghost   { background: rgba(255,255,255,0.05); color: #d1d5db; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .instructions { color: #9ca3af; font-size: 0.85rem; margin-top: 28px; line-height: 1.8; text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; }
+    .instructions strong { color: #e5e7eb; display: block; margin-bottom: 8px; font-weight: 600;}
     .actions { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
   </style>
 </head>

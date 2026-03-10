@@ -6,6 +6,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import quote
 
 from cloudpop.providers.base import BaseProvider, FileInfo
 from cloudpop.strm.state import GeneratorState
@@ -154,7 +155,7 @@ class StrmGenerator:
             try:
                 strm_path = self._build_strm_path(fi, cached_map)
                 known_strm_paths.add(strm_path)
-                content = f"{self._base_url}/stream/115/{fi.pickcode}\n"
+                content = f"{self._build_stream_url(fi)}\n"
                 wrote = self._write_strm(strm_path, content, dry_run)
                 if wrote:
                     result.created += 1
@@ -202,6 +203,11 @@ class StrmGenerator:
         if relative:
             return self._output_dir / relative / f"{stem}.strm"
         return self._output_dir / f"{stem}.strm"
+
+    def _build_stream_url(self, fi: FileInfo) -> str:
+        """Build a stable stream URL that includes the original filename suffix."""
+        quoted_name = quote(fi.name, safe="")
+        return f"{self._base_url}/stream/115/{fi.pickcode}/{quoted_name}"
 
     def _write_strm(self, path: Path, content: str, dry_run: bool) -> bool:
         """Write STRM file; return True if file was created/updated, False if skipped."""

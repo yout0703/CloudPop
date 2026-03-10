@@ -1,684 +1,1294 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CloudPop 控制台</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono&display=swap"
-    rel="stylesheet">
   <style>
-    :root {
-      --bg: #05050a;
-      --card: rgba(15, 15, 30, 0.7);
-      --border: rgba(255, 255, 255, 0.08);
-      --accent: #8b5cf6;
-      --accent-gradient: linear-gradient(135deg, #8b5cf6, #3b82f6);
-      --green: #10b981;
-      --red: #ef4444;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --glass: rgba(255, 255, 255, 0.03);
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    :root {
+      --bg: #07111d;
+      --bg-soft: #0c1829;
+      --card: rgba(10, 20, 35, 0.88);
+      --card-strong: rgba(8, 16, 28, 0.96);
+      --card-muted: rgba(255, 255, 255, 0.03);
+      --line: rgba(157, 188, 255, 0.14);
+      --line-strong: rgba(157, 188, 255, 0.26);
+      --text: #edf4ff;
+      --text-soft: #afbdd4;
+      --text-muted: #7890b2;
+      --brand: #6bb8ff;
+      --brand-soft: rgba(107, 184, 255, 0.12);
+      --success: #3dd598;
+      --warning: #f2b84b;
+      --danger: #ff7d7d;
+      --shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --mono: "SF Mono", "Roboto Mono", ui-monospace, monospace;
     }
 
     body {
-      font-family: 'Outfit', sans-serif;
-      background: var(--bg);
-      background-image:
-        radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+      min-height: 100vh;
+      padding: 24px;
+      font-family: var(--sans);
       color: var(--text);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      background:
+        radial-gradient(circle at top center, rgba(72, 142, 255, 0.16), transparent 28%),
+        linear-gradient(180deg, #08111c 0%, #0a1524 54%, #08111d 100%);
     }
 
-    /* --- Navigation --- */
-    header {
-      padding: 16px 24px;
-      display: flex;
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.36), transparent 80%);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .hero-card {
+      padding: 30px;
+      display: grid;
+      gap: 24px;
+    }
+
+    .hero-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .eyebrow {
+      display: inline-flex;
       align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(107, 184, 255, 0.24);
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      margin-top: 16px;
+      font-size: clamp(38px, 4.4vw, 64px);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      max-width: 12ch;
+    }
+
+    .hero-copy {
+      margin-top: 16px;
+      max-width: 58ch;
+      color: var(--text-soft);
+      font-size: 15px;
+      line-height: 1.75;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-item {
+      display: flex;
       justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(20px);
-      z-index: 100;
-      flex-shrink: 0;
-    }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 800;
-      background: var(--accent-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.03em;
-    }
-
-    .status-items {
-      display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
+      padding: 16px 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: var(--card-muted);
     }
 
-    .status-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: 99px;
-      font-size: 0.85rem;
-      font-weight: 500;
+    .status-meta {
+      display: grid;
+      gap: 5px;
+    }
+
+    .status-label {
+      color: var(--text-muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .status-value {
+      font-size: 14px;
+      line-height: 1.45;
     }
 
     .dot {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: var(--muted);
-      box-shadow: 0 0 10px var(--muted);
+      flex-shrink: 0;
+      background: var(--text-muted);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
     }
 
-    .dot.online {
-      background: var(--green);
-      box-shadow: 0 0 10px var(--green);
-    }
+    .dot.online { background: var(--success); }
+    .dot.warn { background: var(--warning); }
+    .dot.offline { background: var(--danger); }
 
-    .dot.offline {
-      background: var(--red);
-      box-shadow: 0 0 10px var(--red);
-    }
-
-    .btn-login {
-      background: var(--accent-gradient);
-      border: none;
-      color: white;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-login:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.1);
-    }
-
-    /* --- Workspace Layout --- */
-    main {
-      flex: 1;
+    .hero-stats {
       display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 20px;
-      padding: 20px;
-      overflow: hidden;
-      max-width: 1600px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .workspace-left {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow: hidden;
-    }
-
-    .workspace-right {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow: hidden;
-    }
-
-    /* --- Base Card --- */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      backdrop-filter: blur(10px);
-    }
-
-    .card-title {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: white;
-    }
-
-    .card-title i {
-      color: var(--accent);
-    }
-
-    /* --- Action Panel --- */
-    .action-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 16px;
     }
 
-    .action-card {
-      padding: 20px;
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .action-card:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .action-card.primary {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
-      border-color: rgba(139, 92, 246, 0.2);
-    }
-
-    .action-name {
-      font-weight: 600;
-      font-size: 1rem;
-    }
-
-    .action-desc {
-      font-size: 0.8rem;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--glass);
-      color: var(--text);
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: var(--accent-gradient);
-      border: none;
-      color: white;
-    }
-
-    .btn:hover:not(:disabled) {
-      filter: brightness(1.2);
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* --- Folder Section --- */
-    .folder-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      background: var(--glass);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-
-    .folder-icon {
-      font-size: 1.5rem;
-    }
-
-    .folder-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .folder-label {
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .current-path {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* --- Logs --- */
-    .log-container {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .log-header {
-      padding: 10px 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .log-content {
-      flex: 1;
-      padding: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-      overflow-y: auto;
-      scroll-behavior: smooth;
-    }
-
-    .log-line {
-      margin-bottom: 4px;
-      line-height: 1.5;
-      animation: fadeIn 0.2s ease-out;
-    }
-
-    .log-ts {
-      color: #555;
-      margin-right: 8px;
-    }
-
-    .log-info {
-      color: #ccc;
-    }
-
-    .log-success {
-      color: var(--green);
-    }
-
-    .log-error {
-      color: var(--red);
-    }
-
-    .log-warn {
-      color: #fbbf24;
-    }
-
-    /* --- Stats Panel --- */
-    .stats-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .stat-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px;
-      background: var(--glass);
-      border-radius: 10px;
-      font-size: 0.9rem;
+    .stat-box {
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+      min-height: 116px;
+      display: grid;
+      align-content: space-between;
     }
 
     .stat-label {
-      color: var(--muted);
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .stat-value {
-      font-weight: 600;
-      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(28px, 3vw, 40px);
+      line-height: 1;
+      letter-spacing: -0.05em;
     }
 
-    /* --- Spinner --- */
+    .stat-sub {
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.95fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .main-stack,
+    .side-stack {
+      display: grid;
+      gap: 20px;
+    }
+
+    .side-stack {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+    }
+
+    .section-card {
+      padding: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      color: var(--text-soft);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .section-copy {
+      margin-top: 6px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .action-btn {
+      position: relative;
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+      min-height: 128px;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, rgba(107, 184, 255, 0.18), rgba(255, 255, 255, 0.02));
+      border-color: rgba(107, 184, 255, 0.24);
+    }
+
+    .action-btn.ghost {
+      min-height: 112px;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.56;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    .action-tag {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(107, 184, 255, 0.2);
+      background: rgba(107, 184, 255, 0.08);
+      color: var(--brand);
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .action-title {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .action-desc {
+      max-width: 30ch;
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
     .spinner {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
       width: 16px;
       height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-top-color: var(--text);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       display: none;
     }
 
-    .loading .spinner {
+    .loading .spinner { display: block; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.16s ease, border-color 0.16s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--line-strong);
+    }
+
+    .btn.primary {
+      background: var(--text);
+      border-color: var(--text);
+      color: #07111d;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: #dfeeff;
+      border-color: #dfeeff;
+    }
+
+    .stack {
+      display: grid;
+      gap: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .form-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: rgba(4, 10, 18, 0.72);
+      color: var(--text);
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: rgba(107, 184, 255, 0.34);
+      box-shadow: 0 0 0 3px rgba(107, 184, 255, 0.08);
+    }
+
+    .toggle-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .toggle strong {
       display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .toggle span {
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.55;
     }
 
-    /* --- Modal --- */
+    .toggle input {
+      margin-top: 3px;
+      accent-color: var(--brand);
+    }
+
+    .info-box,
+    .endpoint-box {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .path {
+      font-family: var(--mono);
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 1.6;
+      word-break: break-all;
+    }
+
+    .metric-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .metric:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .metric-label {
+      color: var(--text-muted);
+      font-size: 13px;
+      flex: 0 0 96px;
+    }
+
+    .metric-value {
+      text-align: right;
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--mono);
+      line-height: 1.55;
+      word-break: break-word;
+      flex: 1;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    table {
+      width: 100%;
+      min-width: 660px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 13px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .empty {
+      padding: 26px 18px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .console {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .console-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .console-body {
+      max-height: 320px;
+      overflow: auto;
+      padding: 18px 20px 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .log-line + .log-line {
+      margin-top: 6px;
+    }
+
+    .log-ts {
+      color: var(--text-muted);
+      margin-right: 10px;
+    }
+
+    .log-info { color: var(--text-soft); }
+    .log-success { color: var(--success); }
+    .log-warn { color: var(--warning); }
+    .log-error { color: var(--danger); }
+
+    .side-card {
+      padding: 22px;
+    }
+
+    .side-title {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .side-copy {
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
       display: none;
       align-items: center;
       justify-content: center;
+      padding: 18px;
+      background: rgba(3, 9, 16, 0.78);
+      backdrop-filter: blur(10px);
+      z-index: 50;
     }
 
-    .modal-overlay.open {
-      display: flex;
-    }
+    .modal-overlay.open { display: flex; }
 
     .modal {
-      width: 500px;
-      max-height: 80vh;
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+      width: min(680px, 100%);
+      max-height: min(88vh, 860px);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      background: var(--card-strong);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-header,
+    .modal-footer,
+    .breadcrumb {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .modal-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--border);
       display: flex;
-      align-items: center;
       justify-content: space-between;
-    }
-
-    .modal-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      gap: 16px;
     }
 
     .modal-footer {
-      padding: 16px;
-      border-top: 1px solid var(--border);
+      border-bottom: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
+      justify-content: space-between;
       gap: 12px;
-      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .modal-close {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .modal-body {
+      overflow: auto;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .folder-current {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(107, 184, 255, 0.24);
+      background: rgba(107, 184, 255, 0.06);
+    }
+
+    .folder-current strong {
+      display: block;
+      margin-bottom: 6px;
     }
 
     .folder-item {
-      padding: 12px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.2s;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--text);
+      cursor: pointer;
     }
 
-    .folder-item:hover {
-      background: var(--glass);
-    }
-
+    .folder-item:hover,
     .folder-item.selected {
-      background: rgba(139, 92, 246, 0.2);
-      border: 1px solid var(--accent);
+      border-color: var(--line-strong);
+      background: rgba(107, 184, 255, 0.09);
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(5px);
+    .folder-item .name {
+      font-size: 14px;
+    }
+
+    .folder-item .hint {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 1180px) {
+      .hero-top,
+      .content-grid {
+        grid-template-columns: 1fr;
       }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      .side-stack {
+        position: static;
       }
     }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
+    @media (max-width: 820px) {
+      body {
+        padding: 14px;
+      }
 
-    ::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 10px;
+      .hero-card,
+      .section-card,
+      .side-card {
+        padding: 18px;
+      }
+
+      .hero-stats,
+      .action-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head,
+      .console-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      table {
+        min-width: 560px;
+      }
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <div class="logo">CloudPop</div>
-    <div class="status-items">
-      <div class="status-badge">
-        <div class="dot" id="authDot"></div>
-        <span id="authLabel">核验中</span>
+  <div class="page">
+    <section class="card hero-card">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">CloudPop Media Bridge</div>
+          <h1 class="hero-title">从 115 到 DLNA，直接闭环。</h1>
+          <p class="hero-copy">
+            在一个面板里完成认证、目录选择、扫描、STRM 生成和 DLNA 广播确认。
+            现在不再以 Plex 为中心，而是以你的本地媒体出口为中心。
+          </p>
+        </div>
+
+        <div class="status-list">
+          <div class="status-item">
+            <div class="status-meta">
+              <span class="status-label">115 认证</span>
+              <span class="status-value" id="authSummary">检查中</span>
+            </div>
+            <span class="dot" id="authDot"></span>
+          </div>
+          <div class="status-item">
+            <div class="status-meta">
+              <span class="status-label">DLNA 广播</span>
+              <span class="status-value" id="dlnaSummary">检查中</span>
+            </div>
+            <span class="dot" id="dlnaDot"></span>
+          </div>
+          <div class="status-item">
+            <div class="status-meta">
+              <span class="status-label">服务版本</span>
+              <span class="status-value" id="versionSummary">--</span>
+            </div>
+            <span class="dot online"></span>
+          </div>
+        </div>
       </div>
-      <button class="btn-login" id="authBtn" onclick="window.location.href='/login'" style="display:none">115
-        登录</button>
+
+      <div class="hero-stats">
+        <div class="stat-box">
+          <span class="stat-label">最近扫描视频数</span>
+          <strong class="stat-value" id="kpiVideos">0</strong>
+          <span class="stat-sub" id="kpiVideosSub">等待扫描</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">最近生成结果</span>
+          <strong class="stat-value" id="kpiGenerated">0</strong>
+          <span class="stat-sub" id="kpiGeneratedSub">等待生成</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">DLNA 目录项</span>
+          <strong class="stat-value" id="kpiDlnaItems">0</strong>
+          <span class="stat-sub" id="kpiDlnaSub">容器 0 / 媒体 0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">缓存命中率</span>
+          <strong class="stat-value" id="kpiCacheRate">0%</strong>
+          <span class="stat-sub" id="kpiCacheSub">缓存条目 0</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="content-grid">
+      <div class="main-stack">
+        <section class="card section-card">
+          <div class="section-head">
+            <div>
+              <div class="section-title">工作流</div>
+              <p class="section-copy">把常用动作收敛成稳定的几个步骤，先看状态，再执行动作，再查看结果。</p>
+            </div>
+            <div class="toolbar">
+              <a class="btn" href="/login">重新登录 115</a>
+              <button class="btn" type="button" onclick="refreshDashboard()">刷新状态</button>
+            </div>
+          </div>
+
+          <div class="action-grid">
+            <button class="action-btn primary" id="syncBtn" onclick="runSync()">
+              <span class="action-tag">推荐</span>
+              <div class="action-title">一键同步</div>
+              <div class="action-desc">先扫描，再按当前参数生成 STRM，并自动刷新 DLNA 媒体目录。</div>
+              <div class="spinner"></div>
+            </button>
+            <button class="action-btn" id="scanBtn" onclick="runScan()">
+              <span class="action-tag">阶段 1</span>
+              <div class="action-title">扫描目录</div>
+              <div class="action-desc">检查当前目标目录下的视频文件，预览数量和样本文件。</div>
+              <div class="spinner"></div>
+            </button>
+            <button class="action-btn" id="generateBtn" onclick="runGenerate()">
+              <span class="action-tag">阶段 2</span>
+              <div class="action-title">生成 STRM</div>
+              <div class="action-desc">按增量、清理、预演等参数生成输出，供播放器和 DLNA 直接消费。</div>
+              <div class="spinner"></div>
+            </button>
+            <button class="action-btn ghost" id="clearCacheBtn" onclick="clearCache()">
+              <span class="action-tag">维护</span>
+              <div class="action-title">清理下载缓存</div>
+              <div class="action-desc">失效链接、切网或排查播放问题时，快速回收缓存。</div>
+              <div class="spinner"></div>
+            </button>
+          </div>
+        </section>
+
+        <section class="card section-card">
+          <div class="section-head">
+            <div>
+              <div class="section-title">同步参数</div>
+              <p class="section-copy">默认读取配置文件，也可以在当前页面临时覆盖输出目录和执行模式。</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="outputPathInput">本次生成输出目录</label>
+              <input id="outputPathInput" type="text" placeholder="留空则使用配置中的 output_dir" />
+            </div>
+
+            <div class="toggle-grid">
+              <label class="toggle">
+                <div>
+                  <strong>增量同步</strong>
+                  <span>只处理上次扫描之后的新内容，适合日常跑批。</span>
+                </div>
+                <input type="checkbox" id="incrementalToggle" />
+              </label>
+              <label class="toggle">
+                <div>
+                  <strong>预演模式</strong>
+                  <span>仅计算结果，不实际写入 STRM 文件，适合先估算变更量。</span>
+                </div>
+                <input type="checkbox" id="dryRunToggle" />
+              </label>
+              <label class="toggle">
+                <div>
+                  <strong>清理孤儿文件</strong>
+                  <span>删除本地输出中已不在云端目录中的旧 STRM 文件。</span>
+                </div>
+                <input type="checkbox" id="cleanupToggle" />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="card section-card">
+          <div class="section-head">
+            <div>
+              <div class="section-title">扫描结果预览</div>
+              <p class="section-copy" id="scanPreviewMeta">尚未执行扫描。</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>文件名</th>
+                  <th>路径</th>
+                  <th>大小</th>
+                  <th>Pickcode</th>
+                </tr>
+              </thead>
+              <tbody id="scanPreviewBody">
+                <tr><td colspan="4" class="empty">还没有扫描结果。先执行一次目录扫描。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card console">
+          <div class="console-head">
+            <div>
+              <div class="section-title">活动日志</div>
+              <p class="section-copy">页面级操作日志，便于确认执行结果和参数。</p>
+            </div>
+            <div class="toolbar">
+              <button class="btn" type="button" onclick="clearLog()">清空日志</button>
+            </div>
+          </div>
+          <div class="console-body" id="logContent"></div>
+        </section>
+      </div>
+
+      <aside class="side-stack">
+        <section class="card side-card">
+          <h3 class="side-title">扫描目录</h3>
+          <p class="side-copy">当前目标目录将同时影响扫描和生成。支持切换到任意子文件夹，也可以回到根目录。</p>
+          <div class="info-box" style="margin-top: 16px;">
+            <div class="path" id="scanFolderPath">/</div>
+          </div>
+          <div class="toolbar" style="margin-top: 14px; justify-content: flex-start;">
+            <button class="btn primary" type="button" onclick="openFolderPicker()">选择目录</button>
+            <button class="btn hidden" type="button" onclick="resetScanFolder()" id="resetBtn">重置根目录</button>
+          </div>
+        </section>
+
+        <section class="card side-card">
+          <h3 class="side-title">DLNA 出口</h3>
+          <p class="side-copy">展示当前广播设备信息和访问地址，方便在电视、Quest、播放器里做发现和排查。</p>
+
+          <div class="metric-list" style="margin-top: 16px;">
+            <div class="metric">
+              <span class="metric-label">设备名</span>
+              <span class="metric-value" id="dlnaName">--</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">设备 UUID</span>
+              <span class="metric-value" id="dlnaUuid">--</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">广播地址</span>
+              <span class="metric-value" id="dlnaLocation">--</span>
+            </div>
+          </div>
+
+          <div class="endpoint-box" style="margin-top: 16px;">
+            <div class="section-title" style="margin-bottom: 10px;">设备描述 XML</div>
+            <div class="path" id="dlnaDeviceUrl">--</div>
+          </div>
+
+          <div class="status-badge">
+            <span class="dot" id="dlnaBadgeDot"></span>
+            <span id="dlnaBadgeText">检查中</span>
+          </div>
+        </section>
+
+        <section class="card side-card">
+          <h3 class="side-title">运行信息</h3>
+          <p class="side-copy">把关键路径、缓存状态和版本信息集中起来，减少排障时来回切页面。</p>
+
+          <div class="metric-list" style="margin-top: 16px;">
+            <div class="metric">
+              <span class="metric-label">服务版本</span>
+              <span class="metric-value" id="svcVersion">--</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">输出目录</span>
+              <span class="metric-value" id="svcOutputDir">--</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Base URL</span>
+              <span class="metric-value" id="svcBaseUrl">--</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">缓存命中 / 未命中</span>
+              <span class="metric-value" id="cacheSummary">0 / 0</span>
+            </div>
+          </div>
+        </section>
+      </aside>
     </div>
-  </header>
-
-  <main>
-    <div class="workspace-left">
-      <!-- 同步任务 -->
-      <div class="card">
-        <div class="card-title">
-          <span>🚀 任务调度</span>
-        </div>
-        <div class="action-grid">
-          <div class="action-card primary" onclick="runSync()" id="syncBtn">
-            <span class="action-name">一键全量同步</span>
-            <span class="action-desc">依次执行扫描和生成，最简单的同步方案。</span>
-            <div class="spinner"></div>
-          </div>
-          <div class="action-card" onclick="runAction('scan')" id="scanBtn">
-            <span class="action-name">目录深度扫描</span>
-            <span class="action-desc">仅建立当前目录下的文件索引。</span>
-            <div class="spinner"></div>
-          </div>
-          <div class="action-card" onclick="runAction('generate')" id="generateBtn">
-            <span class="action-name">生成 STRM</span>
-            <span class="action-desc">将索引文件导出为 Plex 可读的 .strm。</span>
-            <div class="spinner"></div>
-          </div>
-          <div class="action-card" onclick="clearCache()" id="clearCacheBtn">
-            <span class="action-name">清空 API 缓存</span>
-            <span class="action-desc">强制清理 115 获取的下载加速链接缓存。</span>
-            <div class="spinner"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 日志 -->
-      <div class="log-container">
-        <div class="log-header">
-          <span>RUNNING CONSOLE</span>
-          <span style="cursor:pointer" onclick="clearLog()">Clear</span>
-        </div>
-        <div class="log-content" id="logContent">
-          <div class="log-line">Initializing system events...</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="workspace-right">
-      <!-- 配置 -->
-      <div class="card">
-        <div class="card-title">⚙️ 扫描配置</div>
-        <div class="folder-section">
-          <div class="folder-icon">📂</div>
-          <div class="folder-info">
-            <div class="folder-label">Target Cloud Directory</div>
-            <div class="current-path" id="scanFolderPath">/</div>
-          </div>
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-          <button class="btn" onclick="openFolderPicker()">更改目录</button>
-          <button class="btn" onclick="resetScanFolder()" id="resetBtn" style="display:none">重置根</button>
-        </div>
-      </div>
-
-      <!-- 状态 -->
-      <div class="card">
-        <div class="card-title">📟 运行状态</div>
-        <div class="stats-list" id="healthStats">
-          <div class="stat-item"><span class="stat-label">Service</span><span class="stat-value"
-              id="svcStatus">...</span></div>
-          <div class="stat-item"><span class="stat-label">Version</span><span class="stat-value"
-              id="svcVersion">...</span></div>
-          <div class="stat-item"><span class="stat-label">Auth 115</span><span class="stat-value" id="svc115">...</span>
-          </div>
-          <div class="stat-item" style="flex-direction:column; gap:8px">
-            <span class="stat-label">Plex Output Path</span>
-            <span class="stat-value" id="svcOutputDir" style="font-size:0.75rem; color:var(--muted)">...</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+  </div>
 
   <div class="modal-overlay" id="folderModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 style="font-weight:600">选择 115 文件夹</h3>
-        <button class="btn" style="padding:4px 8px" onclick="closeFolderPicker()">✕</button>
+        <div>
+          <div class="section-title">选择扫描目录</div>
+          <p class="section-copy">单击选中，双击进入子目录。</p>
+        </div>
+        <button class="modal-close" type="button" onclick="closeFolderPicker()">×</button>
       </div>
-      <div style="padding: 8px 20px; font-size: 0.85rem; color: var(--muted); background: rgba(0,0,0,0.2)"
-        id="modalBreadcrumb">/</div>
-      <div class="modal-body" id="folderList"></div>
+      <div class="breadcrumb path" id="modalBreadcrumb">/</div>
+      <div class="modal-body">
+        <div class="folder-current">
+          <strong>当前浏览目录</strong>
+          <div class="path" id="currentFolderPath">/</div>
+          <div class="toolbar" style="margin-top: 12px; justify-content: flex-start;">
+            <button class="btn primary" type="button" onclick="selectCurrentFolder()">选择当前目录</button>
+          </div>
+        </div>
+        <div id="folderList"></div>
+      </div>
       <div class="modal-footer">
-        <button class="btn" id="upBtn" onclick="goUp()">返回上级</button>
-        <button class="btn btn-primary" id="confirmFolderBtn" disabled onclick="confirmFolder()">确认选择</button>
+        <div class="toolbar">
+          <button class="btn" type="button" id="upBtn" onclick="goUp()" disabled>返回上级</button>
+          <button class="btn" type="button" onclick="browseFolders('0', '/')">回到根目录</button>
+        </div>
+        <div class="toolbar">
+          <button class="btn" type="button" onclick="closeFolderPicker()">取消</button>
+          <button class="btn primary" type="button" id="confirmFolderBtn" onclick="confirmFolder()" disabled>确认选择</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
+    const state = {
+      dashboard: null,
+      lastScan: null,
+      lastGenerate: null,
+      folderStack: [],
+      selectedFolder: null,
+      browsingFolder: { id: '0', path: '/' },
+    };
+
     const logContent = document.getElementById('logContent');
 
-    function log(msg, cls = 'info') {
+    function escHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat('zh-CN').format(Number(value || 0));
+    }
+
+    function formatSize(bytes) {
+      const size = Number(bytes || 0);
+      if (!size) return '--';
+      const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const index = Math.min(Math.floor(Math.log(size) / Math.log(1024)), units.length - 1);
+      const value = size / (1024 ** index);
+      return `${value.toFixed(value >= 100 || index === 0 ? 0 : 1)} ${units[index]}`;
+    }
+
+    function log(message, type = 'info') {
       const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
       const line = document.createElement('div');
       line.className = 'log-line';
-      line.innerHTML = `<span class="log-ts">[${ts}]</span><span class="log-${cls}">${escHtml(msg)}</span>`;
+      line.innerHTML = `<span class="log-ts">[${ts}]</span><span class="log-${type}">${escHtml(message)}</span>`;
       logContent.appendChild(line);
       logContent.scrollTop = logContent.scrollHeight;
     }
 
-    function clearLog() { logContent.innerHTML = ''; }
-    function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function clearLog() {
+      logContent.innerHTML = '';
+      log('日志已清空。');
+    }
+
     function setLoading(id, loading) {
       const el = document.getElementById(id);
-      if (el) {
-        el.classList.toggle('loading', loading);
-        const btn = el.tagName === 'BUTTON' ? el : null;
-        if (btn) btn.disabled = loading;
+      if (!el) return;
+      el.classList.toggle('loading', loading);
+      el.disabled = loading;
+    }
+
+    function setDot(id, status) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.className = `dot ${status}`;
+    }
+
+    function buildGeneratePayload() {
+      const outputPath = document.getElementById('outputPathInput').value.trim();
+      return {
+        incremental: document.getElementById('incrementalToggle').checked,
+        dry_run: document.getElementById('dryRunToggle').checked,
+        cleanup: document.getElementById('cleanupToggle').checked,
+        output_path: outputPath,
+      };
+    }
+
+    function renderDashboard() {
+      const data = state.dashboard;
+      if (!data) return;
+
+      const authOk = Boolean(data.provider_115_authenticated);
+      const authConfigured = Boolean(data.auth?.configured);
+      const dlnaEnabled = Boolean(data.dlna?.enabled);
+      const dlnaHealthy = dlnaEnabled && Boolean(data.dlna?.location);
+
+      document.getElementById('versionSummary').textContent = `v${data.version || '--'}`;
+      document.getElementById('svcVersion').textContent = `v${data.version || '--'}`;
+      document.getElementById('svcOutputDir').textContent = data.output_dir || '--';
+      document.getElementById('svcBaseUrl').textContent = data.base_url || '--';
+
+      document.getElementById('scanFolderPath').textContent =
+        data.scan_folder_id === '0' ? '/ (根目录)' : (data.scan_folder_path || '/');
+      document.getElementById('outputPathInput').placeholder =
+        data.output_dir ? `留空则使用 ${data.output_dir}` : '留空则使用配置中的 output_dir';
+
+      document.getElementById('authSummary').textContent = authConfigured
+        ? (authOk ? `已认证 · ${data.auth.uid || '115'}` : '已配置但不可用')
+        : '未登录';
+      setDot('authDot', authOk ? 'online' : (authConfigured ? 'warn' : 'offline'));
+
+      document.getElementById('dlnaSummary').textContent = dlnaEnabled
+        ? (dlnaHealthy ? '广播已启用' : '已启用但地址异常')
+        : '未启用';
+      setDot('dlnaDot', dlnaHealthy ? 'online' : (dlnaEnabled ? 'warn' : 'offline'));
+      setDot('dlnaBadgeDot', dlnaHealthy ? 'online' : (dlnaEnabled ? 'warn' : 'offline'));
+      document.getElementById('dlnaBadgeText').textContent = dlnaEnabled
+        ? `DLNA 已启用，目录容器 ${formatNumber(data.dlna.containers)}`
+        : 'DLNA 当前关闭';
+
+      document.getElementById('dlnaName').textContent = data.dlna.friendly_name || '--';
+      document.getElementById('dlnaUuid').textContent = data.dlna.uuid || '--';
+      document.getElementById('dlnaLocation').textContent = data.dlna.location || '--';
+      document.getElementById('dlnaDeviceUrl').textContent = data.dlna.device_xml_url || '--';
+
+      document.getElementById('kpiDlnaItems').textContent = formatNumber(data.dlna.items);
+      document.getElementById('kpiDlnaSub').textContent =
+        `容器 ${formatNumber(data.dlna.containers)} / 媒体 ${formatNumber(data.dlna.items)}`;
+
+      document.getElementById('kpiCacheRate').textContent =
+        `${Math.round(Number(data.cache.hit_rate || 0) * 100)}%`;
+      document.getElementById('kpiCacheSub').textContent =
+        `缓存条目 ${formatNumber(data.cache.size)}`;
+      document.getElementById('cacheSummary').textContent =
+        `${formatNumber(data.cache.hits)} / ${formatNumber(data.cache.misses)}`;
+
+      document.getElementById('resetBtn').classList.toggle(
+        'hidden',
+        data.scan_folder_id === '0' || data.scan_folder_id === ''
+      );
+    }
+
+    function renderScanPreview() {
+      const body = document.getElementById('scanPreviewBody');
+      const meta = document.getElementById('scanPreviewMeta');
+      if (!state.lastScan || !Array.isArray(state.lastScan.files) || state.lastScan.files.length === 0) {
+        body.innerHTML = '<tr><td colspan="4" class="empty">还没有扫描结果。先执行一次目录扫描。</td></tr>';
+        meta.textContent = '尚未执行扫描。';
+        document.getElementById('kpiVideos').textContent = '0';
+        document.getElementById('kpiVideosSub').textContent = '等待扫描';
+        return;
+      }
+
+      const files = state.lastScan.files.slice(0, 12);
+      body.innerHTML = files.map((file) => `
+        <tr>
+          <td>${escHtml(file.name)}</td>
+          <td class="path">${escHtml(file.path)}</td>
+          <td>${escHtml(formatSize(file.size))}</td>
+          <td class="path">${escHtml(file.pickcode)}</td>
+        </tr>
+      `).join('');
+
+      const total = Number(state.lastScan.total_videos || state.lastScan.total || files.length);
+      meta.textContent = `共发现 ${formatNumber(total)} 个视频，当前展示前 ${formatNumber(files.length)} 条。`;
+      document.getElementById('kpiVideos').textContent = formatNumber(total);
+      document.getElementById('kpiVideosSub').textContent = `样本预览 ${formatNumber(files.length)} 条`;
+    }
+
+    function renderGenerateSummary() {
+      if (!state.lastGenerate) {
+        document.getElementById('kpiGenerated').textContent = '0';
+        document.getElementById('kpiGeneratedSub').textContent = '等待生成';
+        return;
+      }
+      const data = state.lastGenerate;
+      document.getElementById('kpiGenerated').textContent = formatNumber(data.created || 0);
+      document.getElementById('kpiGeneratedSub').textContent =
+        `${data.dry_run ? '预演' : '实际写入'} · 跳过 ${formatNumber(data.skipped || 0)} · 错误 ${formatNumber(data.errors || 0)}`;
+    }
+
+    async function fetchJson(url, options = {}) {
+      const response = await fetch(url, options);
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (error) {
+        data = {};
+      }
+      if (!response.ok) {
+        throw new Error(data.detail || `HTTP ${response.status}`);
+      }
+      return data;
+    }
+
+    async function refreshDashboard({ silent = false } = {}) {
+      try {
+        state.dashboard = await fetchJson('/api/dashboard');
+        renderDashboard();
+        renderGenerateSummary();
+        renderScanPreview();
+        if (!silent) {
+          log('控制台状态已刷新。');
+        }
+      } catch (error) {
+        log(`状态刷新失败：${error.message}`, 'error');
       }
     }
 
-    // --- State & Config ---
-    async function loadScanFolder() {
+    async function runScan() {
+      setLoading('scanBtn', true);
+      log('开始扫描当前目录。');
       try {
-        const res = await fetch('/api/config/scan-folder');
-        const { folder_id, folder_path } = await res.json();
-        const el = document.getElementById('scanFolderPath');
-        const resetBtn = document.getElementById('resetBtn');
-        if (folder_id === '0' || folder_id === '') {
-          el.textContent = '/ (根目录)';
-          resetBtn.style.display = 'none';
-        } else {
-          el.textContent = folder_path;
-          resetBtn.style.display = 'block';
-        }
-      } catch (e) { el.textContent = 'ERROR'; }
-    }
-
-    async function resetScanFolder() {
-      if (!confirm('重置为全量同步（扫描 115 根目录）？')) return;
-      await fetch('/api/config/scan-folder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folder_id: '0', folder_path: '/' }),
-      });
-      await loadScanFolder();
-      log('已重置为扫描根目录', 'info');
-    }
-
-    // --- Actions ---
-    async function runAction(action) {
-      const btnId = action + 'Btn';
-      setLoading(btnId, true);
-      log(`开始执行: ${action}...`);
-      try {
-        const res = await fetch(`/api/${action}`, {
+        const data = await fetchJson('/api/scan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: '{}'
+          body: JSON.stringify({}),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
-
-        if (action === 'scan') {
-          log(`扫描完成: 共发现 ${data.total_videos || 0} 个视频文件`, 'success');
-        } else {
-          log(`生成 STRM 完成: 新增 ${data.created || 0}, 跳过 ${data.skipped || 0}, 错误 ${data.errors || 0}`, 'success');
-        }
-      } catch (e) {
-        log(`${action} 失败: ${e.message}`, 'error');
+        state.lastScan = data;
+        renderScanPreview();
+        log(`扫描完成，发现 ${formatNumber(data.total_videos || data.total || 0)} 个视频。`, 'success');
+      } catch (error) {
+        log(`扫描失败：${error.message}`, 'error');
       } finally {
-        setLoading(btnId, false);
+        setLoading('scanBtn', false);
+      }
+    }
+
+    async function runGenerate() {
+      setLoading('generateBtn', true);
+      const payload = buildGeneratePayload();
+      log(`开始生成 STRM。增量=${payload.incremental}，预演=${payload.dry_run}，清理=${payload.cleanup}`);
+      try {
+        const data = await fetchJson('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        state.lastGenerate = data;
+        renderGenerateSummary();
+        const modeText = data.dry_run ? '预演完成' : '生成完成';
+        log(
+          `${modeText}：新增 ${formatNumber(data.created)}，跳过 ${formatNumber(data.skipped)}，错误 ${formatNumber(data.errors)}，耗时 ${data.duration_seconds}s。`,
+          data.errors ? 'warn' : 'success'
+        );
+        if (Array.isArray(data.error_details) && data.error_details.length) {
+          data.error_details.slice(0, 5).forEach((item) => log(item, 'warn'));
+        }
+        await refreshDashboard({ silent: true });
+      } catch (error) {
+        log(`生成失败：${error.message}`, 'error');
+      } finally {
+        setLoading('generateBtn', false);
       }
     }
 
     async function runSync() {
       setLoading('syncBtn', true);
-      log('>> 开始全量同步流水线 (扫描 + 生成)...');
+      log('开始一键同步。');
+      const payload = buildGeneratePayload();
       try {
-        // Step 1: Scan
-        let res = await fetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-        let data = await res.json();
-        if (!res.ok) throw new Error(`扫描阶段失败: ${data.detail}`);
-        log(`扫描阶段完成: ${data.total_videos || 0} 文件`, 'success');
+        const scanData = await fetchJson('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        state.lastScan = scanData;
+        renderScanPreview();
+        log(`扫描完成，发现 ${formatNumber(scanData.total_videos || scanData.total || 0)} 个视频。`, 'success');
 
-        // Step 2: Generate
-        res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-        data = await res.json();
-        if (!res.ok) throw new Error(`生成阶段失败: ${data.detail}`);
-        log(`同步流水线执行成功!`, 'success');
-        log(`[结果] 新增:${data.created} 跳过:${data.skipped} 耗时:${data.duration_seconds}s`, 'info');
-      } catch (e) {
-        log(`流水线中断: ${e.message}`, 'error');
+        const generateData = await fetchJson('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        state.lastGenerate = generateData;
+        renderGenerateSummary();
+        log(
+          `同步完成：新增 ${formatNumber(generateData.created)}，跳过 ${formatNumber(generateData.skipped)}，错误 ${formatNumber(generateData.errors)}。`,
+          generateData.errors ? 'warn' : 'success'
+        );
+        await refreshDashboard({ silent: true });
+      } catch (error) {
+        log(`同步失败：${error.message}`, 'error');
       } finally {
         setLoading('syncBtn', false);
       }
@@ -686,113 +1296,132 @@
 
     async function clearCache() {
       setLoading('clearCacheBtn', true);
+      log('开始清理下载缓存。');
       try {
-        const res = await fetch('/api/cache', { method: 'DELETE' });
-        const data = await res.json();
-        log(`缓存已清除 (${data.deleted_count || 0} 条)`, 'success');
-      } catch (e) { log('清除失败', 'error'); }
-      finally { setLoading('clearCacheBtn', false); }
+        const data = await fetchJson('/api/cache', { method: 'DELETE' });
+        log(`缓存已清理，共 ${formatNumber(data.cleared || 0)} 条。`, 'success');
+        await refreshDashboard({ silent: true });
+      } catch (error) {
+        log(`清理缓存失败：${error.message}`, 'error');
+      } finally {
+        setLoading('clearCacheBtn', false);
+      }
     }
 
-    // --- Auth & Health ---
-    async function checkAuth() {
+    async function resetScanFolder() {
+      if (!window.confirm('确定将扫描目录重置为根目录吗？')) return;
       try {
-        const res = await fetch('/api/auth/status');
-        const { configured, uid } = await res.json();
-        const dot = document.getElementById('authDot');
-        const label = document.getElementById('authLabel');
-        const btn = document.getElementById('authBtn');
-        if (configured) {
-          dot.className = 'dot online';
-          label.textContent = `UID: ${uid}`;
-        } else {
-          dot.className = 'dot offline';
-          label.textContent = '未登录';
-          btn.style.display = 'block';
-        }
-      } catch (e) { document.getElementById('authLabel').textContent = 'ERROR'; }
+        await fetchJson('/api/config/scan-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder_id: '0', folder_path: '/' }),
+        });
+        log('扫描目录已重置为根目录。', 'success');
+        await refreshDashboard({ silent: true });
+      } catch (error) {
+        log(`重置扫描目录失败：${error.message}`, 'error');
+      }
     }
-
-    async function checkHealth() {
-      try {
-        const res = await fetch('/health');
-        const data = await res.json();
-        document.getElementById('svcStatus').textContent = data.status || 'OFFLINE';
-        document.getElementById('svcVersion').textContent = data.version || 'v?';
-        const ok = data.providers?.['115']?.authenticated;
-        document.getElementById('svc115').textContent = ok ? 'ACTIVE' : 'FAIL';
-
-        const cfgRes = await fetch('/api/config');
-        if (cfgRes.ok) {
-          const cfg = await cfgRes.json();
-          document.getElementById('svcOutputDir').textContent = cfg.output_dir || 'UNDEFINED';
-        }
-      } catch (e) { document.getElementById('svcStatus').textContent = 'STOPPED'; }
-    }
-
-    // --- Folder Picker (Basic Implementation) ---
-    let folderStack = [];
-    let selectedFolder = null;
 
     function openFolderPicker() {
       document.getElementById('folderModal').classList.add('open');
-      browseFolders('0', '/');
+      state.folderStack = [];
+      state.selectedFolder = null;
+      browseFolders(
+        state.dashboard?.scan_folder_id || '0',
+        state.dashboard?.scan_folder_path || '/'
+      );
     }
-    function closeFolderPicker() { document.getElementById('folderModal').classList.remove('open'); }
 
-    async function browseFolders(id, path) {
+    function closeFolderPicker() {
+      document.getElementById('folderModal').classList.remove('open');
+    }
+
+    async function browseFolders(folderId, folderPath) {
+      state.browsingFolder = { id: folderId, path: folderPath || '/' };
+      document.getElementById('modalBreadcrumb').textContent = state.browsingFolder.path;
+      document.getElementById('currentFolderPath').textContent = state.browsingFolder.path;
+      document.getElementById('upBtn').disabled = state.folderStack.length === 0;
+      document.getElementById('confirmFolderBtn').disabled = !state.selectedFolder;
+
       const list = document.getElementById('folderList');
-      list.innerHTML = '<div style="padding:20px; text-align:center; color:#555">Loading folders...</div>';
-      document.getElementById('modalBreadcrumb').textContent = path;
-      document.getElementById('upBtn').disabled = folderStack.length === 0;
+      list.innerHTML = '<div class="empty">目录加载中...</div>';
 
       try {
-        const res = await fetch(`/api/folders?folder_id=${id}`);
-        const data = await res.json();
+        const data = await fetchJson(`/api/folders?folder_id=${encodeURIComponent(folderId)}`);
         list.innerHTML = '';
-        if (data.items.length === 0) list.innerHTML = '<div style="padding:20px; color:#555">无子文件夹</div>';
 
-        data.items.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'folder-item';
-          div.innerHTML = `<span>📁</span> <span>${escHtml(item.name)}</span>`;
-          div.onclick = () => {
-            document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('selected'));
-            div.classList.add('selected');
-            selectedFolder = { id: item.id, path: `${path.replace(/\/$/, '')}/${item.name}` };
+        if (!Array.isArray(data.items) || data.items.length === 0) {
+          list.innerHTML = '<div class="empty">当前目录下没有子文件夹。</div>';
+          return;
+        }
+
+        data.items.forEach((item) => {
+          const path = `${data.folder_path === '/' ? '' : data.folder_path}/${item.name}` || '/';
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'folder-item';
+          row.innerHTML = `
+            <div>
+              <div class="name">${escHtml(item.name)}</div>
+              <div class="hint">${escHtml(path)}</div>
+            </div>
+            <div class="hint">双击进入</div>
+          `;
+          row.onclick = () => {
+            document.querySelectorAll('.folder-item').forEach((el) => el.classList.remove('selected'));
+            row.classList.add('selected');
+            state.selectedFolder = { id: item.id, path };
             document.getElementById('confirmFolderBtn').disabled = false;
           };
-          div.ondblclick = () => {
-            folderStack.push({ id, path });
-            browseFolders(item.id, `${path.replace(/\/$/, '')}/${item.name}`);
+          row.ondblclick = () => {
+            state.folderStack.push({ ...state.browsingFolder });
+            state.selectedFolder = null;
+            browseFolders(item.id, path);
           };
-          list.appendChild(div);
+          list.appendChild(row);
         });
-      } catch (e) { list.innerHTML = 'Load Fail'; }
+      } catch (error) {
+        list.innerHTML = `<div class="empty">目录加载失败：${escHtml(error.message)}</div>`;
+      }
     }
 
     function goUp() {
-      const p = folderStack.pop();
-      if (p) browseFolders(p.id, p.path);
+      const previous = state.folderStack.pop();
+      if (!previous) return;
+      state.selectedFolder = null;
+      browseFolders(previous.id, previous.path);
+    }
+
+    function selectCurrentFolder() {
+      state.selectedFolder = { ...state.browsingFolder };
+      document.querySelectorAll('.folder-item').forEach((el) => el.classList.remove('selected'));
+      document.getElementById('confirmFolderBtn').disabled = false;
+      log(`已选中目录：${state.selectedFolder.path}`);
     }
 
     async function confirmFolder() {
-      if (!selectedFolder) return;
-      await fetch('/api/config/scan-folder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folder_id: selectedFolder.id, folder_path: selectedFolder.path }),
-      });
-      loadScanFolder();
-      closeFolderPicker();
-      log(`扫描目录已更新: ${selectedFolder.path}`, 'success');
+      if (!state.selectedFolder) return;
+      try {
+        await fetchJson('/api/config/scan-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            folder_id: state.selectedFolder.id,
+            folder_path: state.selectedFolder.path,
+          }),
+        });
+        log(`扫描目录已切换为 ${state.selectedFolder.path}。`, 'success');
+        closeFolderPicker();
+        await refreshDashboard({ silent: true });
+      } catch (error) {
+        log(`保存扫描目录失败：${error.message}`, 'error');
+      }
     }
 
-    // Init
-    checkAuth();
-    checkHealth();
-    loadScanFolder();
+    logContent.innerHTML = '';
+    log('CloudPop 控制台已就绪。');
+    refreshDashboard({ silent: true });
   </script>
 </body>
-
 </html>

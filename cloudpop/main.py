@@ -6,7 +6,9 @@ import logging
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlsplit
 
+import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -42,8 +44,38 @@ def create_app(config_path: Path | None = None) -> FastAPI:
                 "~/.cloudpop/config.yaml",
             )
         from cloudpop.cache.manager import get_cache
+        from cloudpop.dlna.content_directory import DlnaLibrary
+        from cloudpop.dlna.service import DlnaDiscoveryService, build_dlna_device_info
+
         get_cache(default_ttl=settings.cache.download_url_ttl)
+        app.state.dlna_library = DlnaLibrary(
+            root=settings.strm.output_path,
+            base_url=_resolve_public_base_url(settings.strm.base_url, settings.server.port),
+        )
+        app.state.dlna_service = None
+        app.state.dlna_device_info = build_dlna_device_info(
+            friendly_name=settings.dlna.friendly_name,
+            uuid=settings.dlna.effective_uuid(
+                f"{settings.strm.base_url}|{settings.server.port}|cloudpop-dlna"
+            ),
+            base_url=_resolve_public_base_url(settings.strm.base_url, settings.server.port),
+            http_path=settings.dlna.http_path,
+            advertise_interval_seconds=settings.dlna.advertise_interval_seconds,
+        )
+        if settings.dlna.enabled:
+            service = DlnaDiscoveryService(app.state.dlna_device_info)
+            try:
+                await service.start()
+                app.state.dlna_service = service
+                logger.info(
+                    "DLNA discovery enabled: %s",
+                    app.state.dlna_device_info.location,
+                )
+            except OSError as exc:
+                logger.warning("Failed to start DLNA discovery service: %s", exc)
         yield
+        if app.state.dlna_service is not None:
+            await app.state.dlna_service.stop()
 
     app = FastAPI(
         title="CloudPop",
@@ -59,18 +91,22 @@ def create_app(config_path: Path | None = None) -> FastAPI:
         return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
     # ── Routers ────────────────────────────────────────────────────────
+    from cloudpop.api.auth import router as auth_router
+    from cloudpop.api.cache import router as cache_router
+    from cloudpop.api.dashboard import router as dashboard_router
+    from cloudpop.api.folders import router as folders_router
+    from cloudpop.api.generate import router as generate_router
     from cloudpop.api.health import router as health_router
     from cloudpop.api.scan import router as scan_router
-    from cloudpop.api.generate import router as generate_router
-    from cloudpop.api.cache import router as cache_router
-    from cloudpop.api.auth import router as auth_router
-    from cloudpop.api.folders import router as folders_router
+    from cloudpop.dlna.router import router as dlna_router
     from cloudpop.proxy.stream import router as stream_router
     from cloudpop.web.router import router as web_router
 
     # Web UI 页面路由放最前（优先级最高，避免被其他路由拦截）
     app.include_router(web_router)
+    app.include_router(dlna_router)
     app.include_router(health_router)
+    app.include_router(dashboard_router)
     app.include_router(stream_router)
     app.include_router(auth_router)
     app.include_router(folders_router)
@@ -83,8 +119,32 @@ def create_app(config_path: Path | None = None) -> FastAPI:
 
 # Allow running directly with `python -m cloudpop.main`
 if __name__ == "__main__":
-    import uvicorn
     from cloudpop.config import get_settings
 
     s = get_settings()
     uvicorn.run(create_app(), host=s.server.host, port=s.server.port)
+
+
+def _resolve_public_base_url(configured_base_url: str, fallback_port: int) -> str:
+    parsed = urlsplit(configured_base_url)
+    hostname = parsed.hostname or "127.0.0.1"
+    port = parsed.port or fallback_port
+    scheme = parsed.scheme or "http"
+    if hostname in {"localhost", "127.0.0.1", "0.0.0.0"}:
+        hostname = _detect_lan_ip()
+    return f"{scheme}://{hostname}:{port}"
+
+
+def _detect_lan_ip() -> str:
+    sock = None
+    try:
+        import socket
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))
+        return sock.getsockname()[0]
+    except OSError:
+        return "127.0.0.1"
+    finally:
+        if sock is not None:
+            sock.close()

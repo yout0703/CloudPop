@@ -113,8 +113,11 @@ async def test_generate_creates_strm_files(tmp_path):
     strm2 = tmp_path / "plex" / "Movies" / "Inception (2010)" / "Inception.strm"
     assert strm1.exists()
     assert strm2.exists()
-    assert strm1.read_text().strip() == "http://localhost:19798/stream/115/pc1"
-    assert strm2.read_text().strip() == "http://localhost:19798/stream/115/pc2"
+    assert strm1.read_text().strip() == "http://localhost:19798/stream/115/pc1/Avatar.mkv"
+    assert (
+        strm2.read_text().strip()
+        == "http://localhost:19798/stream/115/pc2/Inception.mkv"
+    )
 
 
 @pytest.mark.asyncio

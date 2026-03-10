@@ -3,183 +3,240 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CloudPop — 115 账号登录</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>CloudPop — 登录</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --card: #141414;
+      --border: #262626;
+      --text: #f5f5f5;
+      --text-secondary: #737373;
+      --accent: #e5e5e5;
+      --success: #22c55e;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1e1e38, #090910);
-      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
-    .card {
-      background: rgba(26, 26, 46, 0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      padding: 48px;
-      width: 420px;
+
+    .container {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .brand {
       text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-      animation: fadeIn 0.5s ease-out;
+      margin-bottom: 40px;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .logo {
-      font-size: 2.2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #a855f7, #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 8px;
+
+    .brand h1 {
+      font-size: 1.5rem;
+      font-weight: 500;
       letter-spacing: -0.02em;
+      margin-bottom: 8px;
     }
-    .subtitle { color: #9ca3af; margin-bottom: 32px; font-size: 0.95rem; font-weight: 500;}
-    .qr-container {
-      width: 220px;
-      height: 220px;
-      margin: 0 auto 24px;
+
+    .brand p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+    }
+
+    .qr-wrapper {
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 16px;
-      background: #fff;
-      padding: 10px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      transition: transform 0.3s ease;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 24px;
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
     }
-    .qr-container:hover {
-      transform: scale(1.02);
-    }
-    .qr-container img {
+
+    .qr-wrapper img {
       width: 100%;
       height: 100%;
-      border-radius: 8px;
-      object-fit: cover;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.3s;
     }
+
+    .qr-wrapper img.loaded {
+      opacity: 1;
+    }
+
     .qr-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(15,15,26,0.85);
-      backdrop-filter: blur(4px);
-      border-radius: 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      font-size: 0.9rem;
-      font-weight: 500;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 8px;
       transition: opacity 0.3s;
-      color: #fff;
     }
-    .qr-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .qr-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
     .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid rgba(255,255,255,0.1);
-      border-top-color: #a855f7;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--text);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .status-text {
-      font-size: 0.95rem;
-      color: #d1d5db;
-      margin-bottom: 24px;
-      min-height: 1.2em;
-      font-weight: 500;
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status {
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      min-height: 20px;
       transition: color 0.3s;
     }
-    .status-text.success { color: #34d399; }
-    .status-text.error   { color: #f87171; }
-    .status-text.scanned { color: #60a5fa; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 24px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      text-decoration: none;
+
+    .status.success { color: var(--success); }
+    .status.error { color: var(--error); }
+    .status.info { color: var(--info); }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
     }
-    .btn:active { transform: scale(0.96); }
-    .btn-primary { background: linear-gradient(135deg, #a855f7, #3b82f6); color: #fff; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
-    .btn-primary:hover { box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4); transform: translateY(-1px); }
-    .btn-ghost   { background: rgba(255,255,255,0.05); color: #d1d5db; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px); }
-    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    .instructions { color: #9ca3af; font-size: 0.85rem; margin-top: 28px; line-height: 1.8; text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; }
-    .instructions strong { color: #e5e7eb; display: block; margin-bottom: 8px; font-weight: 600;}
-    .actions { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+
+    .btn {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--border);
+      border-color: var(--text-secondary);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .help {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .help-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .help ol {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      padding-left: 16px;
+    }
+
+    .help li {
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">CloudPop</div>
-  <div class="subtitle">使用 115 账号扫码登录</div>
+  <div class="container">
+    <div class="brand">
+      <h1>CloudPop</h1>
+      <p>使用 115 账号扫码登录</p>
+    </div>
 
-  <div class="qr-container" id="qrContainer">
-    <img id="qrImage" src="" alt="二维码" />
-    <div class="qr-overlay" id="qrOverlay">
-      <div class="spinner" id="loadingSpinner"></div>
-      <span id="overlayText">正在生成二维码…</span>
+    <div class="card">
+      <div class="qr-wrapper">
+        <img id="qrImage" alt="二维码" />
+        <div class="qr-overlay" id="qrOverlay">
+          <div class="spinner"></div>
+          <span id="overlayText">加载中...</span>
+        </div>
+      </div>
+
+      <div class="status" id="statusText">请打开 115 App 扫描二维码</div>
+
+      <div class="actions">
+        <button class="btn" id="refreshBtn" onclick="startQR()">刷新</button>
+        <a href="/" class="btn" style="text-decoration:none; text-align:center">返回</a>
+      </div>
+
+      <div class="help">
+        <div class="help-title">操作步骤</div>
+        <ol>
+          <li>打开手机端 115 App</li>
+          <li>点击右上角扫一扫</li>
+          <li>扫描上方二维码并确认登录</li>
+          <li>等待页面自动跳转</li>
+        </ol>
+      </div>
     </div>
   </div>
 
-  <div class="status-text" id="statusText">请打开 115 App 扫描上方二维码</div>
-
-  <div class="actions">
-    <button class="btn btn-ghost"  id="refreshBtn" onclick="startQR()">刷新二维码</button>
-    <a href="/" class="btn btn-ghost">返回首页</a>
-  </div>
-
-  <div class="instructions">
-    <strong>操作步骤：</strong><br/>
-    1. 打开手机端 115 App<br/>
-    2. 点击右上角扫一扫<br/>
-    3. 扫描上方二维码并确认登录<br/>
-    4. 等待页面自动跳转
-  </div>
-</div>
-
 <script>
-const qrImage    = document.getElementById('qrImage');
-const qrOverlay  = document.getElementById('qrOverlay');
+const qrImage = document.getElementById('qrImage');
+const qrOverlay = document.getElementById('qrOverlay');
 const overlayTxt = document.getElementById('overlayText');
-const statusTxt  = document.getElementById('statusText');
-const spinner    = document.getElementById('loadingSpinner');
+const statusTxt = document.getElementById('statusText');
 const refreshBtn = document.getElementById('refreshBtn');
 
 let pollTimer = null;
 let currentUid = null;
 
-function showOverlay(text, showSpinner = true) {
+function showOverlay(text) {
   qrOverlay.classList.remove('hidden');
   overlayTxt.textContent = text;
-  spinner.style.display = showSpinner ? 'block' : 'none';
 }
 
 function hideOverlay() {
   qrOverlay.classList.add('hidden');
 }
 
-function setStatus(text, cls = '') {
+function setStatus(text, cls) {
   statusTxt.textContent = text;
-  statusTxt.className = 'status-text ' + cls;
+  statusTxt.className = 'status' + (cls ? ' ' + cls : '');
 }
 
 function stopPolling() {
@@ -189,23 +246,27 @@ function stopPolling() {
 async function startQR() {
   stopPolling();
   currentUid = null;
-  showOverlay('正在生成二维码…');
+  showOverlay('加载中...');
   setStatus('');
   refreshBtn.disabled = true;
+  qrImage.classList.remove('loaded');
 
   try {
     const res = await fetch('/api/auth/qr/start', { method: 'POST' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { uid, qr_image_url } = await res.json();
     currentUid = uid;
-    qrImage.onload = () => hideOverlay();
-    qrImage.onerror = () => showOverlay('二维码图片加载失败', false);
+    qrImage.onload = () => {
+      hideOverlay();
+      qrImage.classList.add('loaded');
+    };
+    qrImage.onerror = () => showOverlay('加载失败');
     qrImage.src = qr_image_url;
-    setStatus('请打开 115 App 扫描上方二维码');
+    setStatus('请打开 115 App 扫描二维码');
     schedulePoll();
   } catch (e) {
-    showOverlay('获取二维码失败，请刷新重试', false);
-    setStatus('连接 115 服务器失败：' + e.message, 'error');
+    showOverlay('获取失败，请刷新');
+    setStatus('连接失败: ' + e.message, 'error');
   } finally {
     refreshBtn.disabled = false;
   }
@@ -224,30 +285,30 @@ async function pollStatus() {
 
     switch (status) {
       case 0:
-        setStatus('等待扫码…');
+        setStatus('等待扫码...');
         schedulePoll();
         break;
       case 1:
-        setStatus('已扫码，请在手机上确认登录', 'scanned');
+        setStatus('请在手机上确认登录', 'info');
         schedulePoll();
         break;
       case 2:
-        setStatus('扫码成功，正在保存登录信息…', 'success');
+        setStatus('登录成功，正在跳转...', 'success');
         await confirmLogin();
         break;
       case -1:
-        showOverlay('二维码已过期', false);
-        setStatus('二维码已过期，请点击「刷新二维码」', 'error');
+        showOverlay('二维码已过期');
+        setStatus('二维码已过期，请刷新', 'error');
         break;
       case -2:
-        showOverlay('已取消登录', false);
-        setStatus('您已取消登录，请点击「刷新二维码」重试', 'error');
+        showOverlay('已取消登录');
+        setStatus('登录已取消，请刷新重试', 'error');
         break;
       default:
         schedulePoll();
     }
   } catch (e) {
-    schedulePoll(); // 网络异常时静默重试
+    schedulePoll();
   }
 }
 
@@ -262,15 +323,12 @@ async function confirmLogin() {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
-    setStatus('登录成功！3秒后跳转…', 'success');
-    // 刷新设置并跳转首页
-    setTimeout(() => { window.location.href = '/'; }, 3000);
+    setTimeout(() => { window.location.href = '/'; }, 1500);
   } catch (e) {
-    setStatus('保存登录信息失败：' + e.message, 'error');
+    setStatus('登录失败: ' + e.message, 'error');
   }
 }
 
-// 页面加载时自动开始
 startQR();
 </script>
 </body>

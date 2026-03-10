@@ -100,6 +100,17 @@ def test_stream_cache_miss_fetches_url(client):
     assert cache.get(f"dl:{PICKCODE}") == CDN_URL
 
 
+@respx.mock
+def test_stream_url_with_filename_suffix_is_supported(client):
+    respx.post(DOWNURL_API).mock(return_value=httpx.Response(200, json=DOWNURL_RESPONSE))
+    respx.get(CDN_URL).mock(return_value=mock_cdn_ok())
+
+    resp = client.get(f"/stream/115/{PICKCODE}/test_video.mkv")
+
+    assert resp.status_code == 200
+    assert resp.content == SAMPLE_VIDEO_BYTES
+
+
 # ---------------------------------------------------------------------------
 # Cache hit → skip URL fetch
 # ---------------------------------------------------------------------------
@@ -146,6 +157,26 @@ def test_head_request_returns_headers_no_body(client):
     assert resp.content == b""  # HEAD 返回无 body
     assert resp.headers.get("content-length") == "1048576"
     assert resp.headers.get("accept-ranges", "").lower() == "bytes"
+
+
+@respx.mock
+def test_head_request_with_filename_suffix_returns_headers(client):
+    respx.post(DOWNURL_API).mock(return_value=httpx.Response(200, json=DOWNURL_RESPONSE))
+    respx.head(CDN_URL).mock(
+        return_value=httpx.Response(
+            200,
+            headers={
+                "Content-Type": "video/x-matroska",
+                "Content-Length": "1048576",
+                "Accept-Ranges": "bytes",
+            },
+        )
+    )
+
+    resp = client.head(f"/stream/115/{PICKCODE}/test_video.mkv")
+
+    assert resp.status_code == 200
+    assert resp.content == b""
 
 
 # ---------------------------------------------------------------------------

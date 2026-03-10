@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from cloudpop.config import get_settings
 from cloudpop.models.schemas import GenerateRequest, GenerateResponse
@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 @router.post("/api/generate", response_model=GenerateResponse)
-async def generate(req: GenerateRequest) -> GenerateResponse:
+async def generate(req: GenerateRequest, request: Request) -> GenerateResponse:
     """Generate STRM files for the given cloud path."""
     settings = get_settings()
 
@@ -60,6 +60,8 @@ async def generate(req: GenerateRequest) -> GenerateResponse:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     except ProviderError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    request.app.state.dlna_library.refresh()
 
     return GenerateResponse(
         created=result.created,

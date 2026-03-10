@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Any
+from uuid import uuid5, NAMESPACE_URL
 
 import yaml
 from pydantic import field_validator, model_validator
@@ -87,6 +88,36 @@ class LogConfig(BaseSettings):
         return v.upper()
 
 
+class DlnaConfig(BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore")
+    enabled: bool = True
+    friendly_name: str = "CloudPop DLNA"
+    advertise_interval_seconds: int = 30
+    http_path: str = "/dlna/device.xml"
+    uuid: str = ""
+
+    @field_validator("friendly_name")
+    @classmethod
+    def non_empty_name(cls, v: str) -> str:
+        return v.strip() or "CloudPop DLNA"
+
+    @field_validator("http_path")
+    @classmethod
+    def normalize_http_path(cls, v: str) -> str:
+        path = v.strip() or "/dlna/device.xml"
+        return path if path.startswith("/") else f"/{path}"
+
+    @field_validator("advertise_interval_seconds")
+    @classmethod
+    def min_interval(cls, v: int) -> int:
+        return max(5, v)
+
+    def effective_uuid(self, identity_seed: str) -> str:
+        if self.uuid:
+            return self.uuid
+        return str(uuid5(NAMESPACE_URL, identity_seed))
+
+
 # ---------------------------------------------------------------------------
 # Root settings
 # ---------------------------------------------------------------------------
@@ -115,6 +146,7 @@ class Settings:
         self.strm = StrmConfig(**raw.get("strm", {}))
         self.cache = CacheConfig(**raw.get("cache", {}))
         self.log = LogConfig(**raw.get("log", {}))
+        self.dlna = DlnaConfig(**raw.get("dlna", {}))
 
     def is_115_configured(self) -> bool:
         c = self.provider_115.cookies

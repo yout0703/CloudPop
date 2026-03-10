@@ -26,7 +26,8 @@ _CDN_HEADERS = {"User-Agent": ""}
 
 
 @router.head("/stream/115/{pickcode}")
-async def head_115(pickcode: str) -> Response:
+@router.head("/stream/115/{pickcode}/{filename:path}")
+async def head_115(pickcode: str, filename: str = "") -> Response:
     """HEAD 请求：返回文件大小 / Content-Type，不传输 body。
 
     Plex、Skybox 等播放器在正式播放前会发送 HEAD 请求探测文件信息。
@@ -49,7 +50,12 @@ async def head_115(pickcode: str) -> Response:
 
 
 @router.get("/stream/115/{pickcode}")
-async def stream_115(pickcode: str, request: Request) -> StreamingResponse:
+@router.get("/stream/115/{pickcode}/{filename:path}")
+async def stream_115(
+    pickcode: str,
+    request: Request,
+    filename: str = "",
+) -> StreamingResponse:
     """GET 请求：代理视频流，正确转发 Range 请求实现分段播放。
 
     流程：
